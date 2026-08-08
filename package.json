@@ -1,5 +1,5 @@
 {
-  "name": "@ubidotfun/sdk",
+  "name": "@ubi.fun/sdk",
   "version": "0.1.0",
   "description": "TypeScript SDK for the ubi.fun protocol on Arc: launch coins, trade USDC pools, and claim creator, referral, and daily holder rewards",
   "license": "MIT",

@@ -19,14 +19,14 @@ Protocol docs: [ubi.fun/docs/integrate](https://ubi.fun/docs/integrate/overview)
 ## Installation
 
 ```bash
-pnpm add @ubidotfun/sdk
-# or: npm install @ubidotfun/sdk
+pnpm add @ubi.fun/sdk
+# or: npm install @ubi.fun/sdk
 ```
 
 ## Quick Start
 
 ```ts
-import { createUbiSDK, arc } from "@ubidotfun/sdk";
+import { createUbiSDK, arc } from "@ubi.fun/sdk";
 import { createPublicClient, http } from "viem";
 
 const publicClient = createPublicClient({
@@ -46,7 +46,7 @@ Amounts follow the chain: **USDC is 6 decimals, every coin is 18 decimals**. One
 ### Write operations (Viem + Wagmi)
 
 ```ts
-import { createUbiSDK, ReadWriteUbiSDK } from "@ubidotfun/sdk";
+import { createUbiSDK, ReadWriteUbiSDK } from "@ubi.fun/sdk";
 import { useWalletClient } from "wagmi";
 import { useMemo } from "react";
 
@@ -121,7 +121,7 @@ Note: split launches deposit the revenue NFT into the split manager escrow, so "
 Approve the input token to PoolSwap once (USDC for buys, the coin for sells), then swap. **Always pass your address as `referrer`: 5% of the swap fee accrues to it on-chain.**
 
 ```ts
-import { USDC_ADDRESS } from "@ubidotfun/sdk";
+import { USDC_ADDRESS } from "@ubi.fun/sdk";
 import { parseUnits, parseEther } from "viem";
 
 // buy with 100 USDC
@@ -213,7 +213,7 @@ const swaps = await sdkRead.watchPoolSwap({
 React hooks are available from the `hooks` subpath:
 
 ```tsx
-import { usePoolCreatedEvents, usePoolSwapEvents } from "@ubidotfun/sdk/hooks";
+import { usePoolCreatedEvents, usePoolSwapEvents } from "@ubi.fun/sdk/hooks";
 
 const { logs: poolCreatedLogs } = usePoolCreatedEvents(sdkRead);
 const { logs: poolSwapLogs } = usePoolSwapEvents(sdkRead, coinAddress);
@@ -224,7 +224,7 @@ const { logs: poolSwapLogs } = usePoolSwapEvents(sdkRead, coinAddress);
 For custom signers, account abstraction, or batching, `createUBICalldata` returns `{ to, value, data }` call objects instead of sending transactions:
 
 ```ts
-import { createUBICalldata, parseCall } from "@ubidotfun/sdk";
+import { createUBICalldata, parseCall } from "@ubi.fun/sdk";
 
 const sdkCalldata = createUBICalldata({ publicClient, walletAddress });
 
@@ -251,7 +251,7 @@ sdkRead.setIPFSResolver((value) =>
 );
 
 // 2. Or read the tokenURI yourself and fetch it under your own policy
-import { MemecoinAbi } from "@ubidotfun/sdk/abi";
+import { MemecoinAbi } from "@ubi.fun/sdk/abi";
 
 const tokenURI = await publicClient.readContract({
   address: coinAddress,
