@@ -1,10 +1,10 @@
 {
   "name": "@ubi.fun/sdk",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "TypeScript SDK for the ubi.fun protocol on Arc: launch coins, trade USDC pools, and claim creator, referral, and daily holder rewards",
   "license": "MIT",
   "author": "ubi.fun",
-  "homepage": "https://github.com/ubidotfun/ubifun-sdk#readme",
+  "homepage": "https://ubi.fun",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/ubidotfun/ubifun-sdk.git"
