@@ -1,0 +1,161 @@
+{
+  "name": "@ubidotfun/sdk",
+  "version": "0.1.0",
+  "description": "TypeScript SDK for the ubi.fun protocol on Arc: launch coins, trade USDC pools, and claim creator, referral, and daily holder rewards",
+  "license": "MIT",
+  "author": "ubi.fun",
+  "homepage": "https://github.com/ubidotfun/ubifun-sdk#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ubidotfun/ubifun-sdk.git"
+  },
+  "bugs": {
+    "url": "https://github.com/ubidotfun/ubifun-sdk/issues"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "keywords": [
+    "ubi.fun",
+    "ubi",
+    "memecoin",
+    "launchpad",
+    "uniswap v4",
+    "arc",
+    "circle",
+    "usdc",
+    "sdk"
+  ],
+  "type": "module",
+  "main": "dist/index.cjs",
+  "module": "dist/index.js",
+  "unpkg": "dist/index.umd.cjs",
+  "types": "dist/index.d.ts",
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      },
+      "require": {
+        "types": "./dist/index.d.cts",
+        "default": "./dist/index.cjs"
+      }
+    },
+    "./abi": {
+      "import": {
+        "types": "./dist/abi/index.d.ts",
+        "default": "./dist/abi/index.js"
+      },
+      "require": {
+        "types": "./dist/abi/index.d.cts",
+        "default": "./dist/abi/index.cjs"
+      }
+    },
+    "./addresses": {
+      "import": {
+        "types": "./dist/addresses.d.ts",
+        "default": "./dist/addresses/index.js"
+      },
+      "require": {
+        "types": "./dist/addresses.d.cts",
+        "default": "./dist/addresses/index.cjs"
+      }
+    },
+    "./helpers": {
+      "import": {
+        "types": "./dist/helpers/index.d.ts",
+        "default": "./dist/helpers/index.js"
+      },
+      "require": {
+        "types": "./dist/helpers/index.d.cts",
+        "default": "./dist/helpers/index.cjs"
+      }
+    },
+    "./hooks": {
+      "import": {
+        "types": "./dist/hooks/index.d.ts",
+        "default": "./dist/hooks/index.js"
+      },
+      "require": {
+        "types": "./dist/hooks/index.d.cts",
+        "default": "./dist/hooks/index.cjs"
+      }
+    },
+    "./utils": {
+      "import": {
+        "types": "./dist/utils/index.d.ts",
+        "default": "./dist/utils/index.js"
+      },
+      "require": {
+        "types": "./dist/utils/index.d.cts",
+        "default": "./dist/utils/index.cjs"
+      }
+    }
+  },
+  "typesVersions": {
+    "*": {
+      "abi": [
+        "./dist/abi/index.d.ts"
+      ],
+      "addresses": [
+        "./dist/addresses.d.ts"
+      ],
+      "helpers": [
+        "./dist/helpers/index.d.ts"
+      ],
+      "hooks": [
+        "./dist/hooks/index.d.ts"
+      ],
+      "utils": [
+        "./dist/utils/index.d.ts"
+      ]
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "build": "rimraf dist && tsc --emitDeclarationOnly && rollup -c && node scripts/emit-cts.mjs",
+    "dev": "rollup -c -w",
+    "clean": "rimraf dist",
+    "prepublishOnly": "npm run build",
+    "typecheck": "tsc --noEmit",
+    "docs:generate": "typedoc --plugin typedoc-plugin-markdown --out docs src/index.ts --excludeExternals --exclude '**/abi/**' --includeVersion",
+    "docs:llms": "node scripts/generate-llms-doc.js"
+  },
+  "packageManager": "pnpm@8.15.4",
+  "devDependencies": {
+    "@rollup/plugin-commonjs": "^28",
+    "@rollup/plugin-json": "^6",
+    "@rollup/plugin-node-resolve": "^16",
+    "@rollup/plugin-terser": "^0.4.4",
+    "@types/react": "^19.0.10",
+    "esbuild": "^0.28.1",
+    "rimraf": "^6.0.1",
+    "rollup": "^4",
+    "rollup-plugin-esbuild": "^6.2.1",
+    "tslib": "^2.4.0",
+    "typedoc": "^0.25.12",
+    "typedoc-plugin-markdown": "^3.17.1",
+    "typescript": "^5.3.3"
+  },
+  "dependencies": {
+    "@delvtech/drift": "^0.11.1",
+    "@delvtech/drift-viem": "^0.11.1",
+    "axios": "^1.19.0",
+    "viem": "^2.55.11"
+  },
+  "peerDependencies": {
+    "react": ">=18"
+  },
+  "peerDependenciesMeta": {
+    "react": {
+      "optional": true
+    }
+  }
+}
