@@ -30,8 +30,10 @@ import {
   ReferralEscrowAddress,
   XHandleClaimsAddress,
   UniversalRewardsDistributorAddress,
+  IndexerSubscriberAddress,
   ApiBaseUrl,
 } from "../addresses";
+import { ReadIndexerSubscriber } from "../clients/IndexerSubscriberClient";
 import {
   ReadFlaunchPositionManager,
   WatchPoolCreatedParams,
@@ -145,6 +147,7 @@ export class ReadFlaunchSDK {
   public readonly readQuoter: ReadQuoter;
   public readonly readXHandleClaims: ReadXHandleClaims;
   public readonly readUbiPool: ReadUniversalRewardsDistributor;
+  public readonly readIndexerSubscriber: ReadIndexerSubscriber;
 
   public resolveIPFS: (value: string) => string;
 
@@ -195,6 +198,10 @@ export class ReadFlaunchSDK {
     );
     this.readUbiPool = new ReadUniversalRewardsDistributor(
       UniversalRewardsDistributorAddress[this.chainId],
+      drift
+    );
+    this.readIndexerSubscriber = new ReadIndexerSubscriber(
+      IndexerSubscriberAddress[this.chainId],
       drift
     );
   }

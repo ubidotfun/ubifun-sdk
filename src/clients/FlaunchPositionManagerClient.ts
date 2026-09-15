@@ -131,6 +131,26 @@ export class ReadFlaunchPositionManager {
   }
 
   /**
+   * Internal Swap Pool inventory for a pool: swap fees the hook is holding
+   * that have not yet been distributed. `amount0` is always the USDC side,
+   * `amount1` the coin side, regardless of currency ordering in the PoolKey.
+   * Coin-side fees are sold to the next buyer before the v4 pool is touched,
+   * so this inventory is real liquidity that active v4 positions do not show.
+   * See contracts/README.md for the full reserve accounting.
+   */
+  poolFees(poolKey: {
+    currency0: Address;
+    currency1: Address;
+    fee: number;
+    tickSpacing: number;
+    hooks: Address;
+  }) {
+    return this.contract.read("poolFees", {
+      _poolKey: poolKey,
+    });
+  }
+
+  /**
    * The live fee distribution for a pool (swapFee, referrer, protocol shares
    * in hundredths of a percent)
    */

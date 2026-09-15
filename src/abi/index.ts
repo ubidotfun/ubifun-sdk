@@ -5,6 +5,7 @@ export * from "./FeeEscrow";
 export * from "./Flaunch";
 export * from "./FlaunchPositionManager";
 export * from "./FlaunchZap";
+export * from "./IndexerSubscriber";
 export * from "./InitialPrice";
 export * from "./Memecoin";
 export * from "./Multicall";

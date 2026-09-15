@@ -271,9 +271,21 @@ The protocol is a fork of [Flaunch](https://flaunch.gg), and the deployed contra
 
 For a list of all the functions in the SDK, refer to: [FlaunchSDK.ts](./src/sdk/FlaunchSDK.ts)
 
+## Indexing: reverse lookup, reserves, StateView
+
+For indexers doing cold discovery from chain data:
+
+- `sdk.readIndexerSubscriber.poolIndex({ poolId })` resolves a Uniswap v4 PoolId to the coin, its treasury and its tokenId (zero addresses for a pool that is not ours).
+- `sdk.readPositionManager.poolFees(poolKey)` returns the Internal Swap Pool inventory, and `sdk.readFairLaunch.fairLaunchInfo({ poolId })` the fair-launch escrow. Both are tradable inventory that active v4 liquidity does not show.
+- `sdk.readBidWall.position({ poolId })` gives the bid wall's deployed amounts and pending USDC.
+- StateView exists on mainnet only (`StateViewAddress`); `sdk.readPoolManager` reads PoolManager storage directly and works on both networks.
+
+The Solidity sources and the full per-pool reserve accounting are in [`contracts/README.md`](./contracts/README.md).
+
 ## Reference
 
 - Protocol docs: [ubi.fun/docs](https://ubi.fun/docs/integrate/overview)
 - Contract addresses ship in [`src/addresses.ts`](./src/addresses.ts) for Arc mainnet (5042) and testnet (5042002)
+- Contract sources and reserve accounting: [`contracts/`](./contracts/README.md)
 - REST data API: [ubi.fun/docs/integrate/api](https://ubi.fun/docs/integrate/api)
 - MCP server for agents: [ubi.fun/docs/integrate/agents](https://ubi.fun/docs/integrate/agents)

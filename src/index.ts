@@ -23,6 +23,9 @@ export {
   HANDLE_RE,
 } from "./clients/XHandleClaimsClient";
 
+export { ReadIndexerSubscriber } from "./clients/IndexerSubscriberClient";
+export { ReadPoolManager } from "./clients/PoolManagerClient";
+
 export type { UbiEntitlement } from "./sdk/FlaunchSDK";
 
 export { ReadFlaunchSDK, ReadWriteFlaunchSDK };

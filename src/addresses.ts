@@ -109,6 +109,30 @@ export const QuoterAddress: Addresses = {
   [ARC_TESTNET_CHAIN_ID]: "0xf517623f178Ba90e5b3299cb121D38F5A0733ac4",
 };
 
+/**
+ * Uniswap v4 StateView (canonical periphery view over PoolManager storage).
+ *
+ * MAINNET ONLY. Arc testnet runs our own PoolManager instance, and no StateView
+ * was deployed against it, so there is no testnet entry. The SDK does not
+ * depend on StateView on either network: `ReadPoolManager` reads slot0,
+ * liquidity, positions and tick data straight from PoolManager storage with
+ * `extsload`, using the same slot derivations as Uniswap's StateLibrary. Use
+ * that path if you need one code path across both chains.
+ */
+export const StateViewAddress: Addresses = {
+  [ARC_MAINNET_CHAIN_ID]: "0xf3334192d15450cdd385c8b70e03f9a6bd9e673b",
+};
+
+/**
+ * IndexerSubscriber: on-chain reverse index PoolId -> (flaunch, memecoin,
+ * memecoinTreasury, tokenId). Attached to the PositionManager's Notifier, so it
+ * is populated at pool initialisation. See contracts/IndexerSubscriber.sol.
+ */
+export const IndexerSubscriberAddress: Addresses = {
+  [ARC_MAINNET_CHAIN_ID]: "0x2c68B21C9f8b899a662A71dd188C1c919D578a9F",
+  [ARC_TESTNET_CHAIN_ID]: "0xe6d8164d67c60ff860e1a0d90636f5f65b665be7",
+};
+
 /** Base URL of the ubi.fun read/upload API serving each network. */
 export const ApiBaseUrl: { [chainId: number]: string } = {
   [ARC_MAINNET_CHAIN_ID]: "https://api.ubi.fun",
