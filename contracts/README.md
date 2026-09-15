@@ -149,8 +149,13 @@ the PoolKey ordering. The mechanics:
 
 So `poolFees.amount1` is real coin liquidity at the spot price that a v4-only
 model misses, and `poolFees.amount0` is USDC that will leave the pool system on
-distribution rather than being depth. During the fair-launch window this
-coin-side inventory still accumulates and is still sold first on buys.
+distribution rather than being depth.
+
+Ordering inside one buy: fair-launch fill first (window open only), then the
+internal swap, then the v4 pool. While the window is open the pool has no v4
+liquidity, so the internal swap step moves nothing and coin-side fees simply
+accumulate in `amount1` until the window closes; from then on they are sold to
+buyers ahead of v4.
 
 ### 3. Bid wall (BurningBidWall)
 
