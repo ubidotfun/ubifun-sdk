@@ -7,6 +7,7 @@ export * from "./utils/univ4";
 export * from "./utils/parseSwap";
 export * from "./utils/slippage";
 export * from "./utils/swap";
+export * from "./utils/creatorVaults";
 export * from "./types";
 
 export type {
@@ -24,6 +25,12 @@ export {
 } from "./clients/XHandleClaimsClient";
 
 export { ReadIndexerSubscriber } from "./clients/IndexerSubscriberClient";
+export { ReadDividendVault, ReadWriteDividendVault } from "./clients/DividendVaultClient";
+export {
+  ReadMemecoinDividends,
+  ReadWriteMemecoinDividends,
+} from "./clients/MemecoinDividendsClient";
+export type { FlaunchWithVaultParams, FlaunchWithVaultIPFSParams } from "./clients/FlaunchZapClient";
 export { ReadPoolManager } from "./clients/PoolManagerClient";
 
 export type { UbiEntitlement } from "./sdk/FlaunchSDK";

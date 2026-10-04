@@ -12,6 +12,8 @@ import {
   erc721Abi,
   formatUnits,
   decodeEventLog,
+  isAddressEqual,
+  zeroAddress,
 } from "viem";
 import axios from "axios";
 import {
@@ -32,6 +34,7 @@ import {
   UniversalRewardsDistributorAddress,
   IndexerSubscriberAddress,
   ApiBaseUrl,
+  DividendVaultAddress,
 } from "../addresses";
 import { ReadIndexerSubscriber } from "../clients/IndexerSubscriberClient";
 import {
@@ -55,7 +58,15 @@ import {
   FlaunchIPFSParams,
   FlaunchWithSplitManagerParams,
   FlaunchWithSplitManagerIPFSParams,
+  FlaunchWithVaultParams,
+  FlaunchWithVaultIPFSParams,
 } from "../clients/FlaunchZapClient";
+import { ReadDividendVault, ReadWriteDividendVault } from "../clients/DividendVaultClient";
+import {
+  ReadMemecoinDividends,
+  ReadWriteMemecoinDividends,
+} from "../clients/MemecoinDividendsClient";
+import { TreasuryManagerFactoryAbi } from "../abi/TreasuryManagerFactory";
 import { ReadFlaunch } from "../clients/FlaunchClient";
 import { ReadMemecoin, ReadWriteMemecoin } from "../clients/MemecoinClient";
 import { ReadQuoter } from "../clients/QuoterClient";
@@ -1081,6 +1092,76 @@ export class ReadFlaunchSDK {
       args: { owner, operator },
     });
   }
+
+  /**
+   * The coin's creator vault, when it has one: its creator NFT sits in a
+   * clone of the approved DividendVault (factory record) that holds this very
+   * coin. Undefined for coins without one and on chains without creator vaults.
+   * @param coinAddress - The coin address
+   */
+  async getCreatorVault(coinAddress: Address): Promise<
+    | {
+        vault: Address;
+        /** Share of the creator's earnings paid to holders, in percent. */
+        holderSharePercent: number;
+        renounced: boolean;
+        managerOwner: Address;
+      }
+    | undefined
+  > {
+    const implementation = DividendVaultAddress[this.chainId];
+    const factory = TreasuryManagerFactoryAddress[this.chainId];
+    if (!implementation || !factory) {
+      return undefined;
+    }
+    // The creator NFT can move (until it sits in a vault), so this read is fresh
+    const creatorRead = { abi: MemecoinAbi, address: coinAddress, fn: "creator" as const };
+    await this.drift.cache.invalidateRead(creatorRead);
+    const creator = await this.drift.read(creatorRead);
+    if (isAddressEqual(creator, zeroAddress)) {
+      return undefined;
+    }
+    const deployedFrom = await this.drift.read({
+      abi: TreasuryManagerFactoryAbi,
+      address: factory,
+      fn: "managerImplementation",
+      args: { _manager: creator },
+    });
+    if (!isAddressEqual(deployedFrom, implementation)) {
+      return undefined;
+    }
+    const vault = new ReadDividendVault(creator, this.drift);
+    const [memecoin, holderShare, renounced, managerOwner] = await Promise.all([
+      vault.memecoin(),
+      vault.holderShare(),
+      vault.renounced(),
+      vault.managerOwner(),
+    ]);
+    if (!isAddressEqual(memecoin, coinAddress)) {
+      return undefined;
+    }
+    return {
+      vault: creator,
+      holderSharePercent: Number(holderShare) / 100,
+      renounced,
+      managerOwner,
+    };
+  }
+
+  /**
+   * A holder's dividends on a creator vault coin, in 6-decimal USDC.
+   * @param coinAddress - The coin address
+   * @param holder - The holder
+   */
+  async dividendsOf(coinAddress: Address, holder: Address) {
+    const dividends = new ReadMemecoinDividends(coinAddress, this.drift);
+    const [withdrawable, dripping, distributed] = await Promise.all([
+      dividends.withdrawableDividendOf(holder),
+      dividends.dividendsDripping(),
+      dividends.totalDividendsDistributed(),
+    ]);
+    return { withdrawable, dripping, distributed };
+  }
 }
 
 export class ReadWriteFlaunchSDK extends ReadFlaunchSDK {
@@ -1162,6 +1243,57 @@ export class ReadWriteFlaunchSDK extends ReadFlaunchSDK {
    */
   flaunchIPFSWithSplitManager(params: FlaunchWithSplitManagerIPFSParams) {
     return this.readWriteFlaunchZap.flaunchIPFSWithSplitManager(params);
+  }
+
+  /**
+   * Launches a coin whose creator NFT goes into a creator vault: holders earn
+   * a share of the creator's earnings in USDC and the trading fee is chosen
+   * (1.5-5%). Required for every launch once creator vaults are live.
+   * @param params - Parameters for the launch
+   * @returns Transaction response
+   */
+  flaunchWithVault(params: FlaunchWithVaultParams) {
+    return this.readWriteFlaunchZap.flaunchWithVault(params);
+  }
+
+  /** {@link flaunchWithVault}, pinning the token metadata first. */
+  flaunchIPFSWithVault(params: FlaunchWithVaultIPFSParams) {
+    return this.readWriteFlaunchZap.flaunchIPFSWithVault(params);
+  }
+
+  /** ubi.fun-branded alias of {@link flaunchWithVault}. */
+  createUBIWithVault(params: FlaunchWithVaultParams) {
+    return this.flaunchWithVault(params);
+  }
+
+  /** ubi.fun-branded alias of {@link flaunchIPFSWithVault}. */
+  createUBIIPFSWithVault(params: FlaunchWithVaultIPFSParams) {
+    return this.flaunchIPFSWithVault(params);
+  }
+
+  /** Withdraws the connected wallet's dividends from a creator vault coin. */
+  withdrawDividends(coinAddress: Address) {
+    return new ReadWriteMemecoinDividends(coinAddress, this.drift).withdrawDividend();
+  }
+
+  /** Harvests a creator vault coin's fees into its vault (anyone can). */
+  async harvestCreatorVault(coinAddress: Address) {
+    const vault = await this.requireCreatorVault(coinAddress);
+    return new ReadWriteDividendVault(vault, this.drift).harvest();
+  }
+
+  /** Claims the connected wallet's creator credit from a creator vault coin. */
+  async claimCreatorVault(coinAddress: Address) {
+    const vault = await this.requireCreatorVault(coinAddress);
+    return new ReadWriteDividendVault(vault, this.drift).claim();
+  }
+
+  private async requireCreatorVault(coinAddress: Address): Promise<Address> {
+    const info = await this.getCreatorVault(coinAddress);
+    if (!info) {
+      throw new Error(`${coinAddress} has no creator vault`);
+    }
+    return info.vault;
   }
 
   /** ubi.fun-branded alias of {@link flaunch}. */

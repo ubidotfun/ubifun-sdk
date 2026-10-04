@@ -71,6 +71,19 @@ export const AddressFeeSplitManagerAddress: Addresses = {
   [ARC_TESTNET_CHAIN_ID]: "0xA7d182B81aF7B40b6d09Da88A12a4f7ad770e162",
 };
 
+/**
+ * Creator vaults (docs/CREATOR-VAULTS.md in the contracts repo): the approved DividendVault
+ * IMPLEMENTATION every new launch clones, and the HolderShareFeeCalculator. Empty until the
+ * contracts are deployed; once the calculator is the PositionManager's fee calculator, every
+ * launch must attach a vault (`flaunchWithVault`).
+ */
+export const DividendVaultAddress: Addresses = {
+  [ARC_MAINNET_CHAIN_ID]: "0xA9E566b548D5D0203e4d00bc3dFdB4BC38883514",
+};
+export const HolderShareFeeCalculatorAddress: Addresses = {
+  [ARC_MAINNET_CHAIN_ID]: "0xe5737916951Fe20235Bddef5a65af5d18406f92E",
+};
+
 /** Creator revenue escrow: balances accrue here, claimed as USDC (unwrap=false). */
 export const FeeEscrowAddress: Addresses = {
   [ARC_MAINNET_CHAIN_ID]: "0x678f0D1C045e820Ec1d4806749f2629e1035550e",

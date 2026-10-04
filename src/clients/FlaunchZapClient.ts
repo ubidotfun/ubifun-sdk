@@ -8,12 +8,34 @@ import {
   createDrift,
 } from "@delvtech/drift";
 import { FlaunchZapAbi } from "../abi/FlaunchZap";
-import { parseUnits, zeroAddress, zeroHash } from "viem";
+import { FlaunchPositionManagerAbi } from "../abi/FlaunchPositionManager";
+import { TreasuryManagerFactoryAbi } from "../abi/TreasuryManagerFactory";
+import { isAddressEqual, parseUnits, zeroAddress, zeroHash } from "viem";
 import { encodeAbiParameters } from "viem";
 import { generateTokenUri } from "../helpers/ipfs";
 import { referrerHookData } from "../utils/swap";
+import {
+  encodeVaultInitializeData,
+  launchCalculatorState,
+  type LaunchCalculatorState,
+  NO_VAULT_FEE_CALCULATOR_PARAMS,
+  percentToVaultBps,
+  VAULT_MAX_FEE,
+  VAULT_MAX_SPLIT_RECEIVERS,
+  VAULT_MIN_CREATOR_ALLOCATION_PERCENT,
+  VAULT_MIN_FEE,
+  VAULT_MIN_HOLDER_SHARE,
+  VAULT_SHARE_DENOMINATOR,
+  vaultFeeCalculatorParams,
+} from "../utils/creatorVaults";
 import { IPFSParams } from "../types";
-import { AddressFeeSplitManagerAddress } from "../addresses";
+import {
+  AddressFeeSplitManagerAddress,
+  DividendVaultAddress,
+  FlaunchPositionManagerAddress,
+  HolderShareFeeCalculatorAddress,
+  TreasuryManagerFactoryAddress,
+} from "../addresses";
 
 export type FlaunchZapABI = typeof FlaunchZapAbi;
 
@@ -82,6 +104,30 @@ export interface FlaunchWithSplitManagerIPFSParams
   extends Omit<FlaunchWithSplitManagerParams, "tokenUri">,
     IPFSParams {}
 
+export interface FlaunchWithVaultParams
+  extends Omit<FlaunchParams, "treasuryManagerParams"> {
+  /** Trading fee in percent, 1.5 to 5 with at most 2 decimals (default 1.5). Permanent. */
+  feePercent?: number;
+  /**
+   * Share of the creator's earnings paid to the token's holders in USDC, in
+   * percent: 16.67 to 100 with at most 2 decimals (default 16.67). Permanent.
+   */
+  holderSharePercent?: number;
+  /**
+   * Other recipients of what the creator keeps after holder dividends, in
+   * percent (at most 2 decimals, at most 4 receivers). The creator receives
+   * the exact remainder. A receiver can be an X-handle escrow address.
+   */
+  splitReceivers?: {
+    address: Address;
+    percent: number;
+  }[];
+}
+
+export interface FlaunchWithVaultIPFSParams
+  extends Omit<FlaunchWithVaultParams, "tokenUri">,
+    IPFSParams {}
+
 /**
  * Base client for interacting with the FlaunchZap contract in read-only mode.
  * The zap is the one-transaction launch entry point: token, Uniswap v4 pool,
@@ -132,6 +178,52 @@ export class ReadFlaunchZap {
       _initialPriceParams: params.initialPriceParams,
     });
   }
+
+  /**
+   * Reads the PositionManager's fee calculators: whether creator vaults are
+   * live (every launch must attach a vault) and which `feeCalculatorParams`
+   * a launch without a vault sends.
+   */
+  async readLaunchCalculatorState(): Promise<LaunchCalculatorState> {
+    const positionManager = FlaunchPositionManagerAddress[this.chainId];
+    if (!positionManager) {
+      return { vault: false, noVaultParams: NO_VAULT_FEE_CALCULATOR_PARAMS };
+    }
+    const contract = this.drift.contract({
+      abi: FlaunchPositionManagerAbi,
+      address: positionManager,
+    });
+    const vaultImplementation = DividendVaultAddress[this.chainId];
+    const factory = TreasuryManagerFactoryAddress[this.chainId];
+    const approval =
+      vaultImplementation && factory
+        ? {
+            abi: TreasuryManagerFactoryAbi,
+            address: factory,
+            fn: "approvedManagerImplementation" as const,
+            args: { _managerImplementation: vaultImplementation },
+          }
+        : undefined;
+    // Safety reads, never served from the read cache: a stale answer here could launch a
+    // token without a vault, or hand the creator NFT to an unapproved implementation
+    await Promise.all([
+      contract.cache.invalidateRead("feeCalculator"),
+      contract.cache.invalidateRead("fairLaunchFeeCalculator"),
+      approval ? this.drift.cache.invalidateRead(approval) : Promise.resolve(),
+    ]);
+    const [standard, fairLaunch, vaultApproved] = await Promise.all([
+      contract.read("feeCalculator"),
+      contract.read("fairLaunchFeeCalculator"),
+      approval ? this.drift.read(approval) : Promise.resolve(false),
+    ]);
+    return launchCalculatorState({
+      standard,
+      fairLaunch,
+      vaultCalculator: HolderShareFeeCalculatorAddress[this.chainId],
+      vaultImplementation,
+      vaultApproved,
+    });
+  }
 }
 
 /**
@@ -155,6 +247,128 @@ export class ReadWriteFlaunchZap extends ReadFlaunchZap {
    * @returns Transaction response for the flaunch creation
    */
   async flaunch(params: FlaunchParams) {
+    const vaultImplementation = DividendVaultAddress[this.chainId];
+    const manager = params.treasuryManagerParams?.manager;
+    const state = await this.readLaunchCalculatorState();
+    if (
+      vaultImplementation &&
+      manager &&
+      isAddressEqual(manager, vaultImplementation)
+    ) {
+      // A hand-built vault launch registers at the minimum fee, and only while
+      // vaults are live with the implementation approved (see flaunchWithVault)
+      if (!state.vault) {
+        throw new Error(
+          "Creator vaults are not live on this chain: a vault launch now would lose its fee or its vault"
+        );
+      }
+      return this.writeFlaunch(params, "0x");
+    }
+    if (state.vault) {
+      throw new Error(
+        "Creator vaults are live on this chain: launch with flaunchWithVault. A launch without a vault could never trade."
+      );
+    }
+    return this.writeFlaunch(params, state.noVaultParams);
+  }
+
+  /**
+   * Flaunches a token whose creator NFT goes into a DividendVault: holders of
+   * the token earn `holderSharePercent` of the creator's earnings in USDC,
+   * and the trading fee is `feePercent`. Both are permanent, as is the split.
+   * The creator side of the fee must stay at 90% or more (buyback 0-10%).
+   * @returns Transaction response for the flaunch creation
+   */
+  async flaunchWithVault(params: FlaunchWithVaultParams) {
+    const vaultImplementation = DividendVaultAddress[this.chainId];
+    if (!vaultImplementation) {
+      throw new Error("Creator vaults are not deployed on this chain");
+    }
+    const fee = percentToVaultBps(params.feePercent ?? 1.5, "feePercent");
+    if (fee < VAULT_MIN_FEE || fee > VAULT_MAX_FEE) {
+      throw new Error(
+        `feePercent must be between ${VAULT_MIN_FEE / 100} and ${VAULT_MAX_FEE / 100}, got ${params.feePercent}`
+      );
+    }
+    const holderShare = percentToVaultBps(
+      params.holderSharePercent ?? 16.67,
+      "holderSharePercent"
+    );
+    if (holderShare < VAULT_MIN_HOLDER_SHARE || holderShare > VAULT_SHARE_DENOMINATOR) {
+      throw new Error(
+        `holderSharePercent must be between ${VAULT_MIN_HOLDER_SHARE / 100} and 100, got ${params.holderSharePercent}`
+      );
+    }
+    if (params.creatorFeeAllocationPercent < VAULT_MIN_CREATOR_ALLOCATION_PERCENT) {
+      throw new Error(
+        `creatorFeeAllocationPercent must be at least ${VAULT_MIN_CREATOR_ALLOCATION_PERCENT} with a creator vault (buyback 0-10%), got ${params.creatorFeeAllocationPercent}`
+      );
+    }
+    const receivers = params.splitReceivers ?? [];
+    if (receivers.length > VAULT_MAX_SPLIT_RECEIVERS) {
+      throw new Error(
+        `At most ${VAULT_MAX_SPLIT_RECEIVERS} splitReceivers besides the creator`
+      );
+    }
+    const seen = [params.creator];
+    for (const receiver of receivers) {
+      if (
+        isAddressEqual(receiver.address, zeroAddress) ||
+        seen.some((address) => isAddressEqual(address, receiver.address))
+      ) {
+        throw new Error(
+          `splitReceivers must be distinct, non-zero and not the creator: ${receiver.address}`
+        );
+      }
+      seen.push(receiver.address);
+    }
+    // Before activation the fee would be ignored for good (the pool never registers), and an
+    // unapproved implementation would receive the NFT itself: launch only while vaults are live
+    const state = await this.readLaunchCalculatorState();
+    if (!state.vault) {
+      throw new Error(
+        "Creator vaults are not live on this chain yet: a vault launch now would lose its fee or its vault"
+      );
+    }
+    const initializeData = encodeVaultInitializeData({
+      holderShare,
+      receivers: receivers.map((receiver) => ({
+        address: receiver.address,
+        bps: percentToVaultBps(receiver.percent, "splitReceiver percent"),
+      })),
+      creator: params.creator,
+    });
+
+    return this.writeFlaunch(
+      {
+        ...params,
+        treasuryManagerParams: {
+          manager: vaultImplementation,
+          initializeData,
+          depositData: "0x",
+        },
+      },
+      vaultFeeCalculatorParams(fee)
+    );
+  }
+
+  /**
+   * Flaunches a vault token, pinning the token metadata through the ubi.fun
+   * API first. To host the metadata yourself, call `flaunchWithVault({ tokenUri })`.
+   */
+  async flaunchIPFSWithVault(params: FlaunchWithVaultIPFSParams) {
+    const tokenUri = await generateTokenUri(params.name, params.symbol, {
+      chainId: this.chainId,
+      metadata: params.metadata,
+    });
+
+    return this.flaunchWithVault({
+      ...params,
+      tokenUri,
+    });
+  }
+
+  private async writeFlaunch(params: FlaunchParams, feeCalculatorParams: HexString) {
     if (params.fairLaunchPercent < 0 || params.fairLaunchPercent > 95) {
       throw new Error("fairLaunchPercent must be between 0 and 95");
     }
@@ -219,7 +433,7 @@ export class ReadWriteFlaunchZap extends ReadFlaunchZap {
           creatorFeeAllocation: creatorFeeAllocationInBps,
           flaunchAt: params.flaunchAt ?? 0n,
           initialPriceParams,
-          feeCalculatorParams: "0x",
+          feeCalculatorParams,
         },
         _trustedFeeSigner: zeroAddress,
         _premineSwapHookData: referrerHookData(params.premineReferrer),

@@ -116,6 +116,27 @@ await sdkWrite.createUBIIPFSWithSplitManager({
 
 Note: split launches deposit the revenue NFT into the split manager escrow, so "the NFT stays in your wallet" only holds for non-split launches.
 
+### Creator vaults (holder dividends)
+
+Once creator vaults are live on a chain (the vault fee calculator is set and the vault implementation is approved), every launch attaches a creator vault, and `flaunchWithVault` works only then: the token's holders earn a share of the creator's earnings in USDC (spread over 24 hours), and the creator picks the trading fee. `flaunch`/`createUBI` and the split launch throw while vaults are live, because a launch without a vault could never trade. Until then they work as before.
+
+```ts
+await sdkWrite.createUBIIPFSWithVault({
+  // ...same launch params as above; creatorFeeAllocationPercent must be 90 or more...
+  feePercent: 2, // 1.5 to 5, permanent
+  holderSharePercent: 25, // 16.67 to 100 of the creator's earnings, permanent
+  splitReceivers: [{ address: escrow, percent: 10 }], // up to 4, 2 decimals, of what the creator keeps
+});
+
+const vault = await sdkRead.getCreatorVault(coin); // undefined for coins without one
+const { withdrawable } = await sdkRead.dividendsOf(coin, holder);
+await sdkWrite.withdrawDividends(coin);
+await sdkWrite.harvestCreatorVault(coin); // anyone: moves waiting creator fees in
+await sdkWrite.claimCreatorVault(coin); // creator recipients
+```
+
+Every launch without a vault also sends a no-vault marker that the vault fee calculator refuses, so a launch that lands after activation reverts instead of creating a token that can never trade.
+
 ## Trading
 
 Approve the input token to PoolSwap once (USDC for buys, the coin for sells), then swap. **Always pass your address as `referrer`: 5% of the swap fee accrues to it on-chain.**
