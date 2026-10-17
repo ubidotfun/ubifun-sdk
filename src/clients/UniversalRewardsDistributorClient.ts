@@ -14,7 +14,8 @@ export type UniversalRewardsDistributorABI =
 
 /**
  * Client for Morpho's UniversalRewardsDistributor, which pays the daily USDC
- * holder pool (24% of every swap fee). Entitlements are cumulative amounts in
+ * holder pool (24% of every swap fee on older tokens, 13% on v2 tokens) and, from the Oct 18 2026
+ * round, the v3 pair pots in their pair token. Entitlements are cumulative amounts in
  * a Merkle root the keeper submits after each daily epoch; a root becomes
  * claimable after the on-chain timelock. Fetch an address's cumulative amount
  * and proof from the ubi.fun API (GET {apiUrl}/ubi/:address), then `claim`

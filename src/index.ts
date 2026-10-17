@@ -10,6 +10,10 @@ export * from "./utils/swap";
 export * from "./utils/creatorVaults";
 export * from "./types";
 
+// v3 coins (paired with gold first): createUbiV3, quotes, trades, launches, dividends
+export * as v3 from "./v3";
+export { createUbiV3, ReadUbiV3, ReadWriteUbiV3 } from "./v3/UbiV3";
+
 export type {
   BuySwapLog,
   SellSwapLog,

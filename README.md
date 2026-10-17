@@ -206,7 +206,8 @@ await sdkWrite.claimReferralBalance([USDC_ADDRESS, coinAddress], myAddress);
 const share = await sdkRead.splitBalance(managerAddress, myAddress);
 await sdkWrite.claimSplitEarnings(managerAddress);
 
-// daily holder pool (24% of every swap fee, split across coin holders daily;
+// daily holder pool (24% of every swap fee on older tokens, 13% on v2 tokens,
+// paid to $UBI holders daily;
 // entitlement + Merkle proof come from the ubi.fun API)
 const { claimable } = await sdkRead.claimableUbi(myAddress);
 if (claimable > 0n) {
@@ -217,6 +218,41 @@ if (claimable > 0n) {
 // (which submits the on-chain bind), pull the share to the bound wallet
 await sdkWrite.readWriteXHandleClaims.claim("@myhandle", managerAddress);
 ```
+
+## v3 coins (paired with gold)
+
+v3 coins pair with a token other than USDC (gold, XAUm, first) and pay their holders in that token. Every v3 coin's creator NFT sits in a creator vault from its first block. `createUbiV3` covers them with viem only; the calls above are unchanged. `createUbiV3` throws on a chain where the v3 contracts are not deployed.
+
+```ts
+import { createUbiV3 } from "@ubi.fun/sdk";
+
+const v3 = createUbiV3({ publicClient, walletClient });
+
+// Buy and sell in USDC: USDC to gold on its Uniswap v3 pool, gold to the coin, one transaction
+const quote = await v3.quoteBuy({ coin, usdcIn: 25_000_000n }); // 25 USDC
+await v3.buy({ coin, usdcIn: 25_000_000n, slippageBps: 100, referrer });
+await v3.sell({ coin, coinsIn: 10n ** 24n, slippageBps: 100 });
+
+// Dividends are paid in the pair token
+const gold = await v3.dividendsOf(coin, holder);
+await v3.withdrawDividends(coin);
+
+// Launch: rates from 1.5% to 5%, an optional anti-snipe fee and large-trade fee, a holder share
+const sizeThreshold = await v3.sizeThreshold({ usd: 5_000 }); // in gold, at its 30-minute price
+const { coin: launched } = await v3.launch({
+  name: "Gold Coin",
+  symbol: "GLD",
+  tokenUri: "ipfs://...",
+  marketCapUsd: "10000",
+  creatorFeePercent: 90,
+  holderShare: 18_53, // at least minV3HolderShare(creatorFeePercent * 100)
+  fees: { buyFee: 150, sellFee: 150, sizeThreshold, sizeFee: 100, antiSnipeFee: 10_00, antiSnipeDuration: 300 },
+});
+```
+
+A pre-buy (`prebuyPercent`) is paid in the pair: `prebuyCost` gives the most the launch may pull, `buyPair` buys exactly that much gold with USDC, and the zap refunds what the pre-buy does not use.
+
+An Underwater pot (`underwater: { share, minHolding }`) sends `share` (bps) of what the vault receives to buyers holding at a loss, paid hourly; `holderShare + share` is at most 100_00 and `minHolding` is 1,000 to 5,000,000 whole coins. `sizeThreshold` converts at the gold pool's 30-minute average price and rounds up, exactly as the site does.
 
 ## Watching events
 

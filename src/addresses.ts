@@ -104,7 +104,8 @@ export const XHandleClaimsAddress: Addresses = {
 
 /**
  * Morpho UniversalRewardsDistributor paying the daily USDC holder pool
- * (24% of every swap fee). Claims are Merkle-proofed cumulative amounts.
+ * (24% of every swap fee on older tokens, 13% on v2 tokens) and, from the Oct 18 2026 round, the
+ * v3 pair pots in their pair token (gold, XAUm, first). Claims are Merkle-proofed cumulative amounts.
  */
 export const UniversalRewardsDistributorAddress: Addresses = {
   [ARC_MAINNET_CHAIN_ID]: "0x66003091e723778d7D3285BB6c24ff3F0Ddcc7F7",
