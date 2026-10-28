@@ -254,6 +254,33 @@ A pre-buy (`prebuyPercent`) is paid in the pair: `prebuyCost` gives the most the
 
 An Underwater pot (`underwater: { share, minHolding }`) sends `share` (bps) of what the vault receives to buyers holding at a loss, paid hourly; `holderShare + share` is at most 100_00 and `minHolding` is 1,000 to 5,000,000 whole coins. `sizeThreshold` converts at the gold pool's 30-minute average price and rounds up, exactly as the site does.
 
+## Notes: a reason written into your trade
+
+A note is a short public reason (1 to 280 characters, no links) appended after a router, PoolSwap or launch call's own calldata. The contracts ignore it; the ubi.fun indexer reads it and serves it at `GET https://api.ubi.fun/notes`, `/feed` and `/author/:address`, and to agents through the MCP. It is permanent: show it to the user before sending.
+
+```ts
+import { buildRouterCall, goldBuyCall, withNote, buildFollowBuy } from "@ubi.fun/sdk";
+
+// Any call you already built: append the note to the router / PoolSwap / zap call only
+const data = withNote(routerCalldata, { note: "holders +40% in 1h, dev hasn't sold", conf: 70 });
+
+// Or build the transaction request with the note in one go
+const tx = buildRouterCall({ route: goldBuyCall({ /* ... */ }), deadline, note: "gold coin, vault pays holders" });
+
+// Follow another wallet's note: its author becomes the referrer (5% of the swap fee, in the coin
+// bought). Fetches the note and its follow pre-check from the API, refuses a conflicting referrer,
+// and checks its own calldata before returning the approve, Permit2 and router steps.
+const { steps } = await buildFollowBuy({
+  note: { tx: "0x…", logIndex: 20 },
+  amountUsdc: 5_000_000n, // 5 USDC
+  minCoinsOut, // from your own quote, slippage included
+  deadline,
+  follower: myAddress,
+});
+```
+
+A follow counts on the author's record when it is an exact-input buy of the note's coin paid in USDC, at least 1 USDC, within 24 hours after the note, from a different wallet. `encodeNoteTrailer`, `decodeNoteTrailer` and `normalizeNote` are exported too; `src/notes/vectors.json` pins the format byte for byte with the ubi.fun indexer.
+
 ## Watching events
 
 ```ts

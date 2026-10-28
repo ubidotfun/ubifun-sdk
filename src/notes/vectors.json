@@ -1,0 +1,240 @@
+{
+  "normalize": [
+    {
+      "input": "holders +40% in 1h, dev hasn't sold",
+      "output": "holders +40% in 1h, dev hasn't sold"
+    },
+    {
+      "input": "  two   spaces\n\nand\tlines  ",
+      "output": "two spaces and lines"
+    },
+    {
+      "input": "zero​width‍ joiner﻿",
+      "output": "zerowidth joiner"
+    },
+    {
+      "input": "bidi ‮override‬ and ⁦isolate⁩",
+      "output": "bidi override and isolate"
+    },
+    {
+      "input": "ctrl\u0007 bell nel",
+      "output": "ctrl bell nel"
+    },
+    {
+      "input": "é composed",
+      "output": "é composed"
+    },
+    {
+      "input": "e​́ joined after removal",
+      "output": "é joined after removal"
+    },
+    {
+      "input": "nbsp and　ideographic",
+      "output": "nbsp and ideographic"
+    },
+    {
+      "input": "",
+      "output": ""
+    },
+    {
+      "input": " \n\t ",
+      "output": ""
+    }
+  ],
+  "rules": [
+    {
+      "text": "holders +40% in 1h, dev hasn't sold",
+      "problem": null
+    },
+    {
+      "text": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+      "problem": null
+    },
+    {
+      "text": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+      "problem": "too_long"
+    },
+    {
+      "text": "😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀",
+      "problem": null
+    },
+    {
+      "text": "中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中",
+      "problem": null
+    },
+    {
+      "text": "𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀𒀀",
+      "problem": "too_long"
+    },
+    {
+      "text": "see https://example.com",
+      "problem": "link"
+    },
+    {
+      "text": "HTTP://shout",
+      "problem": "link"
+    },
+    {
+      "text": "go to www.site",
+      "problem": "link"
+    },
+    {
+      "text": "join t.me/group",
+      "problem": "link"
+    },
+    {
+      "text": "<your reason here>",
+      "problem": "placeholder"
+    },
+    {
+      "text": "<a> and more",
+      "problem": null
+    },
+    {
+      "text": "two  spaces",
+      "problem": "not_normalized"
+    },
+    {
+      "text": "",
+      "problem": "empty"
+    }
+  ],
+  "trailers": [
+    {
+      "args": {
+        "note": "holders +40% in 1h, dev hasn't sold",
+        "conf": 70,
+        "source": 1
+      },
+      "hex": "0x686f6c64657273202b34302520696e2031682c20646576206861736e277420736f6c6400234601010175626900"
+    },
+    {
+      "args": {
+        "note": "gm",
+        "source": 2
+      },
+      "hex": "0x676d0002ff01020175626900"
+    },
+    {
+      "args": {
+        "note": "copy",
+        "conf": 0,
+        "source": 1,
+        "follow": {
+          "tx": "0xabababababababababababababababababababababababababababababababab",
+          "logIndex": 29
+        }
+      },
+      "hex": "0xabababababababababababababababababababababababababababababababab0000001d636f707900040003010175626900"
+    },
+    {
+      "args": {
+        "source": 2,
+        "follow": {
+          "tx": "0x0101010101010101010101010101010101010101010101010101010101010101",
+          "logIndex": 0
+        }
+      },
+      "hex": "0x0101010101010101010101010101010101010101010101010101010101010101000000000000ff02020175626900"
+    },
+    {
+      "args": {
+        "note": "中文 note",
+        "conf": 100,
+        "source": 0
+      },
+      "hex": "0xe4b8ade69687206e6f7465000b6401000175626900"
+    }
+  ],
+  "decode": [
+    {
+      "hex": "0x",
+      "result": {
+        "ok": false,
+        "reason": "bad_length"
+      }
+    },
+    {
+      "hex": "0x0000ff01010175626901",
+      "result": {
+        "ok": false,
+        "reason": "bad_magic"
+      }
+    },
+    {
+      "hex": "0x0000ff01010275626900",
+      "result": {
+        "ok": false,
+        "reason": "bad_version"
+      }
+    },
+    {
+      "hex": "0x0000ff01040175626900",
+      "result": {
+        "ok": false,
+        "reason": "bad_source"
+      }
+    },
+    {
+      "hex": "0x0000ff05010175626900",
+      "result": {
+        "ok": false,
+        "reason": "bad_flags"
+      }
+    },
+    {
+      "hex": "0x0000ff00010175626900",
+      "result": {
+        "ok": false,
+        "reason": "bad_flags"
+      }
+    },
+    {
+      "hex": "0x6100016501010175626900",
+      "result": {
+        "ok": false,
+        "reason": "bad_conf"
+      }
+    },
+    {
+      "hex": "0x610001ff01010175626900",
+      "result": {
+        "ok": true,
+        "trailer": {
+          "source": 1,
+          "note": "a",
+          "conf": null,
+          "follow": null
+        }
+      }
+    },
+    {
+      "hex": "0x6100016501010175626900",
+      "result": {
+        "ok": false,
+        "reason": "bad_conf"
+      }
+    },
+    {
+      "hex": "0xff0001ff01010175626900",
+      "result": {
+        "ok": false,
+        "reason": "bad_utf8"
+      }
+    },
+    {
+      "hex": "0x6100020101010175626900",
+      "result": {
+        "ok": false,
+        "reason": "bad_length"
+      }
+    },
+    {
+      "hex": "0x0000ff02010175626900",
+      "result": {
+        "ok": false,
+        "reason": "bad_length"
+      }
+    }
+  ]
+}

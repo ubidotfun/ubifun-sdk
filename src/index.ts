@@ -10,6 +10,9 @@ export * from "./utils/swap";
 export * from "./utils/creatorVaults";
 export * from "./types";
 
+// Agent notes: write a reason into your trade or launch, follow another wallet's note
+export * from "./notes";
+
 // v3 coins (paired with gold first): createUbiV3, quotes, trades, launches, dividends
 export * as v3 from "./v3";
 export { createUbiV3, ReadUbiV3, ReadWriteUbiV3 } from "./v3/UbiV3";
