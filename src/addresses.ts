@@ -84,6 +84,16 @@ export const HolderShareFeeCalculatorAddress: Addresses = {
   [ARC_MAINNET_CHAIN_ID]: "0xe5737916951Fe20235Bddef5a65af5d18406f92E",
 };
 
+/**
+ * FeeInventoryGuard: once it is the PositionManager's fee calculator, with the
+ * HolderShareFeeCalculator moved to the fair launch slot, it forwards every fee
+ * and vault check to that calculator and refuses exact-input buys that stop at
+ * their price limit. Vault launches stay live in that layout.
+ */
+export const FeeInventoryGuardAddress: Addresses = {
+  [ARC_MAINNET_CHAIN_ID]: "0xA1FEBe120a57bE21EA237477947D3e05Bd329be1",
+};
+
 /** Creator revenue escrow: balances accrue here, claimed as USDC (unwrap=false). */
 export const FeeEscrowAddress: Addresses = {
   [ARC_MAINNET_CHAIN_ID]: "0x678f0D1C045e820Ec1d4806749f2629e1035550e",

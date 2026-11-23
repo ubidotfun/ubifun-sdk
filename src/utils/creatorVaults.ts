@@ -81,12 +81,19 @@ export interface LaunchCalculatorState {
  * when this SDK knows the vault and calculator and that calculator is the one
  * set. A launch without a vault sends the no-vault marker while no calculator
  * is set or when the SDK cannot place what is set (fail closed), and empty
- * params only beside a calculator that is certainly not the vault one.
+ * params only beside a calculator that is certainly not the vault one. The
+ * fee inventory guard as the standard calculator counts as the vault
+ * calculator only with the vault calculator in the fair launch slot (the guard
+ * forwards every fee and vault check to it, and the hook registers each launch
+ * there first); beside any other fair launch slot the guard refuses launches,
+ * so this fails closed.
  */
 export function launchCalculatorState(params: {
   standard: Address;
   fairLaunch: Address;
   vaultCalculator?: Address;
+  /** The FeeInventoryGuard, when this SDK knows one for the chain. */
+  guardCalculator?: Address;
   vaultImplementation?: Address;
   /**
    * TreasuryManagerFactory approval of the vault implementation: the zap only
@@ -96,22 +103,23 @@ export function launchCalculatorState(params: {
   vaultApproved?: boolean;
 }): LaunchCalculatorState {
   const zero = "0x0000000000000000000000000000000000000000";
-  const { standard, fairLaunch, vaultCalculator, vaultImplementation, vaultApproved } = params;
+  const { standard, fairLaunch, vaultCalculator, guardCalculator, vaultImplementation, vaultApproved } = params;
   const isZero = (address: Address) => isAddressEqual(address, zero);
   const isOurs = (address: Address) =>
     vaultCalculator !== undefined && isAddressEqual(address, vaultCalculator);
-  if (
-    vaultImplementation &&
-    vaultApproved === true &&
-    isOurs(standard) &&
-    (isZero(fairLaunch) || isOurs(fairLaunch))
-  ) {
+  const isGuard = (address: Address) =>
+    guardCalculator !== undefined && isAddressEqual(address, guardCalculator);
+  const calculatorLive =
+    (isOurs(standard) && (isZero(fairLaunch) || isOurs(fairLaunch))) ||
+    (isGuard(standard) && isOurs(fairLaunch));
+  if (vaultImplementation && vaultApproved === true && calculatorLive) {
     return { vault: true, noVaultParams: NO_VAULT_FEE_CALCULATOR_PARAMS };
   }
   if (
     vaultCalculator &&
     !(isZero(standard) && isZero(fairLaunch)) &&
     !isOurs(standard) &&
+    !isGuard(standard) &&
     !isOurs(fairLaunch)
   ) {
     return { vault: false, noVaultParams: "0x" };

@@ -32,6 +32,7 @@ import { IPFSParams } from "../types";
 import {
   AddressFeeSplitManagerAddress,
   DividendVaultAddress,
+  FeeInventoryGuardAddress,
   FlaunchPositionManagerAddress,
   HolderShareFeeCalculatorAddress,
   TreasuryManagerFactoryAddress,
@@ -220,6 +221,7 @@ export class ReadFlaunchZap {
       standard,
       fairLaunch,
       vaultCalculator: HolderShareFeeCalculatorAddress[this.chainId],
+      guardCalculator: FeeInventoryGuardAddress[this.chainId],
       vaultImplementation,
       vaultApproved,
     });
